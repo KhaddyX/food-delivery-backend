@@ -40,3 +40,27 @@ It handles **user authentication, restaurant and menu management, order processi
 ```bash
 git clone https://github.com/KhaddyX/food-delivery-backend.git
 cd food-delivery-backend
+```
+Add your database configuration in application.properties :
+```bash
+
+spring.datasource.url=jdbc:mysql://localhost:3306/food_delivery
+spring.datasource.username=YOUR_DB_USERNAME
+spring.datasource.password=YOUR_DB_PASSWORD
+```
+
+Build the project:
+```bash
+mvn clean install
+```
+
+Run the backend:
+```bash
+
+mvn spring-boot:run
+```
+
+
+The backend will run on http://localhost:8080 by default.
+
+
