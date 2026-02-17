@@ -9,6 +9,9 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
+import java.util.UUID;
+
 // The `UserServiceImpl` class implements the `UserService` interface to handle user-related operations.
 // It includes methods for registering users, retrieving the logged-in user's ID, and converting between DTOs and entities.
 
@@ -24,6 +27,8 @@ private final PasswordEncoder passwordEncoder;
 
 // Injecting the AuthenticationFacade to retrieve authentication details of the logged-in user.
 private final AutthenticationFacade authenticationFacade;
+
+private final EmailService emailService;
 
 // Registers a new user by saving their details in the database.
 @Override
@@ -69,4 +74,35 @@ private UserResponse convertToResponse(UserEntity registeredUser) {
             .email(registeredUser.getEmail()) // Sets the email.
             .build();
 }
+@Override
+public void sendResetEmail(String email) {
+    UserEntity user = userRepository.findByEmail(email)
+            .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+
+    String token = UUID.randomUUID().toString();
+
+    user.setResetToken(token);
+    user.setResetTokenExpiry(LocalDateTime.now().plusMinutes(15));
+
+    userRepository.save(user);
+
+    emailService.sendPasswordResetEmail(user.getEmail(), token);
+}
+
+@Override
+public void resetPassword(String token, String newPassword) {
+    UserEntity user = userRepository.findByResetToken(token)
+            .orElseThrow(() -> new RuntimeException("Invalid reset token"));
+
+    if (user.getResetTokenExpiry().isBefore(LocalDateTime.now())) {
+        throw new RuntimeException("Reset token expired");
+    }
+
+    user.setPassword(passwordEncoder.encode(newPassword));
+    user.setResetToken(null);
+    user.setResetTokenExpiry(null);
+
+    userRepository.save(user);
+}
+
 }

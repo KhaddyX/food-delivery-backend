@@ -6,6 +6,7 @@ import com.example.foodies_backend.dto.UserResponse;
 import com.example.foodies_backend.service.UserService;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 // Marking this class as a REST controller and mapping it to the "/api" endpoint
@@ -25,4 +26,17 @@ public UserResponse register(@RequestBody UserRequest request) {
     // Delegating the register-user operation to the UserService
     return userService.registerUser(request);
 }
+@PostMapping("/forgot-password")
+public ResponseEntity<?> forgotPassword(@RequestParam String email) {
+    userService.sendResetEmail(email);
+    return ResponseEntity.ok("Password reset email sent.");
+}
+
+@PostMapping("/reset-password")
+public ResponseEntity<?> resetPassword(@RequestParam String token,
+                                       @RequestParam String newPassword) {
+    userService.resetPassword(token, newPassword);
+    return ResponseEntity.ok("Password reset successful.");
+}
+
 }

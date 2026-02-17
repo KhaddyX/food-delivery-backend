@@ -9,4 +9,7 @@ public interface UserService {
 UserResponse registerUser(UserRequest request);
 
 String findByUserId();
+void sendResetEmail(String email);
+
+void resetPassword(String token, String newPassword);
 }

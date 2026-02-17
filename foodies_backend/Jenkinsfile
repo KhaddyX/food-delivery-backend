@@ -1,0 +1,93 @@
+pipeline {
+    agent { label 'Pipeline' }
+
+    stages {
+
+        stage('Checkout') {
+            steps {
+                git url: 'https://github.com/KhaddyX/food-delivery-backend.git', branch: 'main'
+            }
+        }
+
+        stage('Compile') {
+            steps {
+                bat "docker version"
+            }
+        }
+
+        stage('Unit Test') {
+            steps {
+                bat ".\\mvnw test"
+            }
+        }
+
+        stage('Code Coverage') {
+            steps {
+                bat ".\\mvnw clean verify"
+
+                publishHTML(target: [
+                    allowMissing: false,
+                    alwaysLinkToLastBuild: true,
+                    keepAll: true,
+                    reportDir: 'target/site/jacoco',
+                    reportFiles: 'index.html',
+                    reportName: 'JaCoCo Report'
+                ])
+            }
+        }
+
+        stage('Static Code Analysis') {
+            steps {
+                bat ".\\mvnw checkstyle:checkstyle"
+
+                publishHTML(target: [
+                    allowMissing: false,
+                    alwaysLinkToLastBuild: true,
+                    keepAll: true,
+                    reportDir: 'target/site',
+                    reportFiles: 'checkstyle.html',
+                    reportName: 'Checkstyle Report'
+                ])
+            }
+        }
+
+        stage('Build Jar') {
+            steps {
+                bat ".\\mvnw clean package -DskipTests"
+            }
+        }
+
+        stage('Docker Build') {
+            steps {
+                bat "docker build -t khaddy08/foodies_backend ."
+            }
+        }
+
+        stage('Docker Push') {
+            steps {
+                bat "docker push khaddy08/foodies_backend"
+            }
+        }
+
+        stage('Docker Run') {
+            steps {
+                bat """
+                docker rm -f foodies_backend || exit 0
+                docker run -d -p 9090:9090 --name foodies_backend khaddy08/foodies_backend
+                """
+            }
+        }
+
+        stage('Acceptance Test') {
+            steps {
+                bat ".\\mvnw verify -Pacceptance"
+            }
+        }
+
+        stage('Deploy') {
+            steps {
+                bat "wsl -d ubuntu ansible-playbook -i /home/khaddy/ansible/hosts foodies_backend.yml"
+            }
+        }
+    }
+}
