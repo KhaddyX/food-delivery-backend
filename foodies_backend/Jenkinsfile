@@ -11,19 +11,19 @@ pipeline {
 
         stage('Compile') {
             steps {
-                bat "docker version"
+                sh "docker version"
             }
         }
 
         stage('Unit Test') {
             steps {
-                bat ".\\mvnw test"
+                sh ".\\mvnw test"
             }
         }
 
         stage('Code Coverage') {
             steps {
-                bat ".\\mvnw clean verify"
+                sh ".\\mvnw clean verify"
 
                 publishHTML(target: [
                     allowMissing: false,
@@ -38,7 +38,7 @@ pipeline {
 
         stage('Static Code Analysis') {
             steps {
-                bat ".\\mvnw checkstyle:checkstyle"
+                sh ".\\mvnw checkstyle:checkstyle"
 
                 publishHTML(target: [
                     allowMissing: false,
@@ -53,25 +53,25 @@ pipeline {
 
         stage('Build Jar') {
             steps {
-                bat ".\\mvnw clean package -DskipTests"
+                sh ".\\mvnw clean package -DskipTests"
             }
         }
 
         stage('Docker Build') {
             steps {
-                bat "docker build -t khaddy08/foodies_backend ."
+                sh "docker build -t khaddy08/foodies_backend ."
             }
         }
 
         stage('Docker Push') {
             steps {
-                bat "docker push khaddy08/foodies_backend"
+                sh "docker push khaddy08/foodies_backend"
             }
         }
 
         stage('Docker Run') {
             steps {
-                bat """
+                sh """
                 docker rm -f foodies_backend || exit 0
                 docker run -d -p 9090:9090 --name foodies_backend khaddy08/foodies_backend
                 """
@@ -80,13 +80,13 @@ pipeline {
 
         stage('Acceptance Test') {
             steps {
-                bat ".\\mvnw verify -Pacceptance"
+                sh ".\\mvnw verify -Pacceptance"
             }
         }
 
         stage('Deploy') {
             steps {
-                bat "wsl -d ubuntu ansible-playbook -i /home/khaddy/ansible/hosts foodies_backend.yml"
+                sh "wsl -d ubuntu ansible-playbook -i /home/khaddy/ansible/hosts foodies_backend.yml"
             }
         }
     }
