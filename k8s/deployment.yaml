@@ -1,0 +1,24 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: foodies-deployment
+  labels:
+    app: foodies
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: foodies
+  template:
+    metadata:
+      labels:
+        app: foodies
+    spec:
+      containers:
+        - name: foodies
+          image: your-username/foodies:latest  # Change to your image
+          ports:
+            - containerPort: 9090
+          env:
+            - name: JAVA_OPTS
+              value: "-Dhazelcast.service-name=hazelcast -Dhazelcast.port=5701"

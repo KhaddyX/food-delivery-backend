@@ -1,0 +1,28 @@
+
+version: "3.8"
+
+services:
+  hazelcast:
+    image: hazelcast/hazelcast:5.0.2
+    container_name: hazelcast
+    ports:
+      - "5701:5701"
+    networks:
+      - foodies-network
+
+  foodies-app:
+    build: .
+    container_name: foodies-app
+    ports:
+      - "8080:8080"
+    depends_on:
+      - hazelcast
+    environment:
+      - HAZELCAST_SERVICE_NAME=hazelcast
+      - HAZELCAST_PORT=5701
+    networks:
+      - foodies-network
+
+networks:
+  foodies-network:
+    driver: bridge
